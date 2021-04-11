@@ -6,6 +6,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
-      - run: cd src_cc
-      - run: make -j20 donut.ir
+      - run: sudo apt install apt-transport-https curl gnupg
+      - run: curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
+      - run: sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
+      - run: echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+      - run: sudo apt update && sudo apt install bazel
+      - run: cd regression
+      - run: bash donut_regression_test.sh
+
 
