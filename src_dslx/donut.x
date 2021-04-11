@@ -32,6 +32,8 @@ fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
     0b00000100, // state7
   ];
 
+  let report_map = u1[NUM_STATES]:[0,...];
+
   // Build report-enable vector
   // In "donut", only state 4 reports.
   let reports = u1[NUM_STATES]: [
@@ -60,13 +62,17 @@ fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
           // Activate all neighbors if this state is active 
           let active_next =
           for (neigh, active_next): (u32, u1[NUM_STATES]) in range(u32:0, NUM_STATES) {
-            let connect_valid = (connections[state_i] as u1[NUM_STATES])[neigh];
-            let next_state_en = connect_valid & accept_ch & active_curr[neigh];
+            let connect_valid = (rev(connections[state_i]) as u1[NUM_STATES])[neigh];
+            let next_state_en = connect_valid & accept_ch & active_curr[state_i] | active_next[neigh];
             update(active_next, neigh, next_state_en)
           } (active_next);
-          (bit_slice_update(result_i, state_i, reports[state_i] & accept_ch), active_next)
+          let report_valid = accept_ch if reports[state_i]
+            else (rev(result_i) as u1[NUM_REPORTS])[report_map[state_i]];
+          let result_i = bit_slice_update(result_i, report_map[state_i], report_valid);
+          let _ = trace!(result_i);
+          (result_i, active_next)
       } ((report_t:0, u1[NUM_STATES]:[u1:0, ...])); 
-      let _ = trace!(active_next);
+      let _ = trace!(result_i);
 
       // Update next cycle's state
       let active_curr =
@@ -76,7 +82,6 @@ fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
       } (active_curr);
 
       let result = update(result, i, result_i);
-      let _ = trace!(result_i);
       (active_curr, result)
   } ((active_curr, report_t[MAX_CYCLES]:[report_t:0, ...]));
 
