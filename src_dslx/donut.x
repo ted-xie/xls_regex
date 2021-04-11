@@ -42,13 +42,16 @@ fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
   ];
 
   // Primary expression match logic.
-  let result =
-  for (i, result_): (u32, report_t[MAX_CYCLES]) in
-    range(u32:0, MAX_CYCLES) {
-    let _ = trace!(i);
-    update(result_, u8:0, report_t:0)
-    //report_t[MAX_CYCLES]:[report_t:0, ...]
-  } (report_t[MAX_CYCLES]:[report_t:0, ...]);
+  let (active_curr, active_next, result) =
+  for (i, (active_curr, active_next, result_)):
+    (u32, (u1[NUM_STATES], u1[NUM_STATES], report_t[MAX_CYCLES])) in
+      range(u32:0, MAX_CYCLES) {
+      let _ = trace!(i);
+      let ch = stream[i];
+
+      //update(result_, u8:0, report_t:0)
+      (active_curr, active_next, report_t[MAX_CYCLES]:[report_t:0, ...])
+  } ((active_curr, active_next, report_t[MAX_CYCLES]:[report_t:0, ...]));
 
   result
 }
