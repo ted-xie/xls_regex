@@ -43,14 +43,30 @@ fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
 
   // Primary expression match logic.
   let (active_curr, active_next, result) =
-  for (i, (active_curr, active_next, result_)):
+  for (i, (active_curr, active_next, result)):
     (u32, (u1[NUM_STATES], u1[NUM_STATES], report_t[MAX_CYCLES])) in
       range(u32:0, MAX_CYCLES) {
-      let _ = trace!(i);
       let ch = stream[i];
 
-      //update(result_, u8:0, report_t:0)
-      (active_curr, active_next, report_t[MAX_CYCLES]:[report_t:0, ...])
+      // For each state, check if it will trigger.
+      
+      // For each state, check if it will send a report.
+      let result_i =
+      for (state_i, result_i): (u32, report_t) in range(u32:0, NUM_STATES) {
+        result_i | (report_t:1 << state_i)
+      } (report_t:0); 
+
+      // Update next cycle's state
+      let active_next =
+      for (state_i, active_next): (u32, u1[NUM_STATES])
+        in range(u32:0, NUM_STATES) {
+        update(active_next, state_i, active_curr[state_i])
+      } (active_next);
+
+      let result = update(result, u8:0, result_i);
+      let _ = trace!(i);
+      let _ = trace!(result);
+      (active_curr, active_next, result)
   } ((active_curr, active_next, report_t[MAX_CYCLES]:[report_t:0, ...]));
 
   result
