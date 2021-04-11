@@ -11,8 +11,6 @@ void donut(const char stream[256], bool result[256][1], const int N_unused) {
   //const int kNumStates = 8;
   bool active_curr[kNumStates] = {true, false, false, false,
                       false, false, false, false};
-  bool active_next[kNumStates] = {false, false, false, false,
-                            false, false, false, false};
   bool accept[kNumStates][256];
 #pragma hls_unroll yes
   for (int i = 0; i < kNumStates; i++)
@@ -47,10 +45,12 @@ void donut(const char stream[256], bool result[256][1], const int N_unused) {
 
 #pragma hls_unroll yes
   for (int i = 0; i < N; i++) {
+    bool active_next[kNumStates] = {false, false, false, false,
+                              false, false, false, false};
     const char c = stream[i];
+#ifndef __SYNTHESIS__
     if (c == 0)
       break;
-#ifndef __SYNTHESIS__
     std::cout << "Step " << i << ": '" << c << "'" << std::endl;
 #endif
 #pragma hls_unroll yes
@@ -81,7 +81,7 @@ void donut(const char stream[256], bool result[256][1], const int N_unused) {
 #pragma hls_unroll yes
     for (int k = 0; k < kNumStates; k++) {
       active_curr[k] = active_next[k];
-      active_next[k] = false;
+      //active_next[k] = false;
     }
   }
 } 

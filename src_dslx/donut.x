@@ -10,26 +10,26 @@ fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
 
   // Build alphabets
   let accept = alphabet_t[NUM_STATES]:[
-    (alphabet_t:1 << u8:'D') | (alphabet_t:1 << u8:'d'),
-    (alphabet_t:1 << u8:'o'),
-    (alphabet_t:1 << u8:'n'),
-    (alphabet_t:1 << u8:'u'),
-    (alphabet_t:1 << u8:'t'),
-    (alphabet_t:1 << u8:'u'),
-    (alphabet_t:1 << u8:'g'),
-    (alphabet_t:1 << u8:'h'),
+    (alphabet_t:1 << u8:'D') | (alphabet_t:1 << u8:'d'), // state0
+    (alphabet_t:1 << u8:'o'), // state1
+    (alphabet_t:1 << u8:'n'), // state2
+    (alphabet_t:1 << u8:'u'), // state3
+    (alphabet_t:1 << u8:'t'), // state4
+    (alphabet_t:1 << u8:'u'), // state5
+    (alphabet_t:1 << u8:'g'), // state6
+    (alphabet_t:1 << u8:'h'), // state7
   ];
 
   // Build connection matrix
   let connections = connect_t[NUM_STATES]: [
-    connect_t:0b00000010, // state0
-    connect_t:0b00100100, // state1
-    connect_t:0b00001000, // state2
-    connect_t:0b00010000, // state3
-    connect_t:0b00000000, // state4
-    connect_t:0b01000000, // state5
-    connect_t:0b10000000, // state6
-    connect_t:0b00000100, // state7
+    0b00000010, // state0
+    0b00100100, // state1
+    0b00001000, // state2
+    0b00010000, // state3
+    0b00000000, // state4
+    0b01000000, // state5
+    0b10000000, // state6
+    0b00000100, // state7
   ];
 
   // Build report-enable vector
@@ -47,8 +47,11 @@ fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
       let ch = stream[i];
       let _ = trace!(i);
       let _ = trace!(ch);
+      let _ = trace!(active_curr);
 
       let (result_i, active_next) =
+      // For all states, check if the stream char is valid, and update
+      // active queue if true.
       for (state_i, (result_i, active_next)): (u32, (report_t, u1[NUM_STATES]))
         in range(u32:0, NUM_STATES) {
           let accept_i = accept[state_i];
@@ -57,11 +60,13 @@ fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
           // Activate all neighbors if this state is active 
           let active_next =
           for (neigh, active_next): (u32, u1[NUM_STATES]) in range(u32:0, NUM_STATES) {
-            update(active_next, neigh, (connections[state_i] as u1[NUM_STATES])[neigh])
+            let connect_valid = (connections[state_i] as u1[NUM_STATES])[neigh];
+            let next_state_en = connect_valid & accept_ch & active_curr[neigh];
+            update(active_next, neigh, next_state_en)
           } (active_next);
-          let _ = trace!(active_next);
           (bit_slice_update(result_i, state_i, reports[state_i] & accept_ch), active_next)
       } ((report_t:0, u1[NUM_STATES]:[u1:0, ...])); 
+      let _ = trace!(active_next);
 
       // Update next cycle's state
       let active_curr =
@@ -71,6 +76,7 @@ fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
       } (active_curr);
 
       let result = update(result, i, result_i);
+      let _ = trace!(result_i);
       (active_curr, result)
   } ((active_curr, report_t[MAX_CYCLES]:[report_t:0, ...]));
 
@@ -79,10 +85,8 @@ fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
 
 #![test]
 fn donut_test() {
-  let result = donut_regex(u8[MAX_CYCLES]:[u8:'d', u8:'o', u8:'n', u8:'u',  u8:'t', u8:0, ...]);
-  let _ = assert_eq(result, report_t[MAX_CYCLES]:[report_t:0, ...]);
-  //let _ = assert_eq(donut_regex(u8[MAX_CYCLES]:[
-  //          u8:'D', 'o', 'n', 'u', 't', 0, ...]),
-  //          report_t[MAX_CYCLES]:[report_t:0, ...]);
+  let result = donut_regex(u8[MAX_CYCLES]:['d', 'o', 'n', 'u',  't', 0, ...]);
+  let _ = assert_eq(result, report_t[MAX_CYCLES]:[
+    0, 0, 0, 0, 1, 0, ...]);
   ()
 }
