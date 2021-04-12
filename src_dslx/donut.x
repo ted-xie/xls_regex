@@ -5,7 +5,7 @@ type report_t = bits[NUM_REPORTS];
 type alphabet_t = bits[256];
 type connect_t = bits[NUM_STATES];
 
-fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
+fn donut (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
   let active_curr = u1[NUM_STATES]:[u1:1, u1:0, ...];
 
   // Build alphabets
@@ -90,7 +90,7 @@ fn donut_regex (stream: u8[MAX_CYCLES]) -> report_t[MAX_CYCLES] {
 
 #![test]
 fn donut_test() {
-  let result = donut_regex(u8[MAX_CYCLES]:['d', 'o', 'n', 'u',  't', 0, ...]);
+  let result = donut(u8[MAX_CYCLES]:['d', 'o', 'n', 'u',  't', 0, ...]);
   let _ = assert_eq(result, report_t[MAX_CYCLES]:[
     0, 0, 0, 0, 1, 0, ...]);
   ()
