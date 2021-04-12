@@ -57,34 +57,19 @@ void donut(const char stream[256], bool result[256][1], const int N_unused) {
 #endif
 #pragma hls_unroll yes
     for (int j = 0; j < kNumStates; j++) {
-      if (active_curr[j]) {
-#ifndef __SYNTHESIS__
-        std::cout << "  state " << j << " is active." << std::endl;
-#endif
-        if (accept[j][c]) {
-          if (reports[j]) {
-            result[i][0] = true;
-#ifndef __SYNTHESIS__
-            std::cout << "    Found match: state " << j << std::endl;
-#endif
-          }
-          // push next set of states into active queue
+      bool accept_ch = accept[j][c];
 #pragma hls_unroll yes
-          for (int k = 0; k < kNumStates; k++) {
-            active_next[k] = connections[j][k];
-#ifndef __SYNTHESIS__
-            if (active_next[k])
-              std::cout << "    Enabling state " << k << " for next cycle." << std::endl;
-#endif
-          }
-        }
+      for (int k = 0; k < kNumStates; k++) {
+        bool connect_valid = connections[j][k];
+        bool next_state_en = connect_valid & accept_ch & active_curr[j] | active_next[k];
+        active_next[k] = next_state_en;
       }
+      bool report_valid = reports[j] ? accept_ch : result[i][0];
+      result[i][0] = report_valid;
     }
 #pragma hls_unroll yes
-    for (int k = 0; k < kNumStates; k++) {
+    for (int k = 0; k < kNumStates; k++)
       active_curr[k] = active_next[k];
-      //active_next[k] = false;
-    }
   }
 } 
 
