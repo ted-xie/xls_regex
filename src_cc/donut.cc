@@ -1,5 +1,7 @@
 #ifndef __SYNTHESIS__
+#include <assert.h>
 #include <iostream>
+#include <string.h>
 #endif
 
 #define kNumStates (8)
@@ -93,7 +95,9 @@ int main(int argc, char ** argv) {
   const int kNumReports = 1;
   bool result[N][kNumReports] = {};
   donut("doughnut", result, N);
+  assert(result[strlen("doughnut")-1][0] == 1);
   donut("Donut", result, N);
+  assert(result[strlen("Donut")-1][0] == 1);
   std::cout << "SUCCESS!" << std::endl;
   return 0;
 }
