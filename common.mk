@@ -40,6 +40,7 @@ ${NAME}_opt.ir: ${NAME}.ir
 ${NAME}_opt.v: ${NAME}_opt.ir
 	${XLS_CODEGEN_MAIN} --clock_period_ps=${CLOCK_TARGET_PS} \
 		--generator=${GENERATOR_TYPE} --delay_model=unit \
+		--use_system_verilog=false \
 		${NAME}_opt.ir > ${NAME}_opt.v
 
 
