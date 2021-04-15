@@ -21,6 +21,8 @@ else
 run: ${NAME}
 endif
 
+ENTRY ?= ${NAME}
+
 clang_args:
 	echo '-D__SYNTHESIS__ \
 -I${XLS_HOME} \
@@ -28,19 +30,19 @@ clang_args:
 
 ifneq (${DSLX},1)
 ${NAME}.ir: clang_args ${NAME}
-	${XLSCC} --clang_args_file clang.args ${SRCS} > ${NAME}.ir
+	${XLSCC} --clang_args_file clang.args --entry=${NAME} ${SRCS} > ${NAME}.ir
 else
 ${NAME}.ir: ${NAME}
-	${XLS_DSLX_IR_CONV} ${SRCS} > ${NAME}.ir
+	${XLS_DSLX_IR_CONV} ${SRCS} --entry=${NAME} > ${NAME}.ir
 endif
 
 ${NAME}_opt.ir: ${NAME}.ir
-	${XLS_OPT_MAIN} ${NAME}.ir > ${NAME}_opt.ir
+	${XLS_OPT_MAIN} ${NAME}.ir --entry=${ENTRY} > ${NAME}_opt.ir
 
 ${NAME}_opt.v: ${NAME}_opt.ir
 	${XLS_CODEGEN_MAIN} --clock_period_ps=${CLOCK_TARGET_PS} \
 		--generator=${GENERATOR_TYPE} --delay_model=unit \
-		--use_system_verilog=false \
+		--use_system_verilog=false --entry=${ENTRY} \
 		${NAME}_opt.ir > ${NAME}_opt.v
 
 
