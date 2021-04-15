@@ -5,7 +5,7 @@
 #endif
 
 #define kNumStates (8)
-#define N (256)
+#define N (16)
 
 #pragma hls_top
 void donut(const char stream[256], bool result[256][1], const int N_unused) {
