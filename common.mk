@@ -45,7 +45,11 @@ ${NAME}_opt.v: ${NAME}_opt.ir
 		--use_system_verilog=false --entry=${ENTRY} \
 		${NAME}_opt.ir > ${NAME}_opt.v
 
-
+${NAME}_opt.synth_xilinx.v: ${NAME}_opt.v
+	echo 'read_verilog -sv $<' > ${NAME}_synth_xilinx.ys \;
+	echo 'synth_xilinx' >> ${NAME}_synth_xilinx.ys \;
+	echo 'write_verilog $@' >> ${NAME}_synth_xilinx.ys \;
+	yosys -s ${NAME}_synth_xilinx.ys -l ${NAME}_yosys_synth_xilinx.log
 
 clean:
 	rm -f *.o ${NAME} clang.args *.ir *.v
