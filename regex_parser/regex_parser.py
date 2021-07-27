@@ -13,6 +13,12 @@ class NFAState:
     self.initial = initial
     self.neighbors = []
 
+  def set_accepts(self, accepts_):
+    self.accepts = accepts_
+
+  def add_neighbor(self, neigh):
+    self.neighbors.append(neigh)
+
   def __str__(self):
     return f"{self.accepts}: neighbors={list(map(lambda st: str(st), self.neighbors))}"
 
@@ -114,6 +120,23 @@ class RegexParser:
     if self.verbose:
       print("INFO: Command stack:", stack)
 
+    # Construct the regex "syntax tree", which forms the basis of the NFA graph
+    nfa_stack = []
+    for i in range(len(stack)-1):
+      # Lookahead by one parser loop
+      cmd = stack[i]
+      cmd_next = stack[i+1]
+      cmd_type = cmd[0]
+      cmd_data = cmd[1]
+      st = NFAState(cmd_data)
+      if len(nfa_stack) == 0:
+        nfa_stack.append(st)
+      elif cmd_type == "LITERAL":
+        nfa_stack[-1].add_neighbor(st)
+      elif cmd_type == "COMMAND":
+        nfa_stack.append(st)
+        
+    print([str(n) for n in nfa_stack])
 
 
   def construct_nfa(self):
